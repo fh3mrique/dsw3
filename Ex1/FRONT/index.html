@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Enquete: Disciplina Favorita</h1>
+    <div id="enquete">
+        <h2>Escolha sua disciplina favorita:</h2>
+        <select id="disciplinas">
+            <option value="Desenvolvimento de Sistemas Web III">Desenvolvimento de Sistemas Web III</option>
+            <option value="Desenvolvimento de Software Corporativo">Desenvolvimento de Software Corporativo</option>
+            <option value="Projeto de Desenvolvimento de Sistema Web">Projeto de Desenvolvimento de Sistema Web</option>
+            <option value="Orientação de Trabalho de Conclusão do Curso I">Orientação de Trabalho de Conclusão do Curso I</option>
+            <option value="Teste de Software">Teste de Software</option>
+        </select>
+        <button type="button" onclick="votar()">Votar</button>
+    </div>
+
+    <div id="resultado" style="display: none;">
+        <h2>Resultado Parcial:</h2>
+        <ul id="lista-resultados">
+            <!-- Os resultados serão preenchidos aqui -->
+        </ul>
+        <button onclick="location.reload()">Voltar para a Enquete</button>
+    </div>
+
+    <script>
+        function votar() {
+            var disciplinaSelecionada = document.getElementById("disciplinas").value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:8080/disciplinas/votar?disciplinaNome=" + encodeURIComponent(disciplinaSelecionada), true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        atualizarResultados();
+                    } else {
+                        alert("Erro ao votar na enquete.");
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function atualizarResultados() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://localhost:8080/disciplinas", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var resultados = JSON.parse(xhr.responseText);
+                        exibirResultados(resultados);
+                    } else {
+                        alert("Erro ao obter resultado da enquete.");
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function exibirResultados(resultados) {
+            var resultadoParcial = document.getElementById("resultado");
+            var listaResultados = document.getElementById("lista-resultados");
+            listaResultados.innerHTML = "";
+
+            for (var i = 0; i < resultados.length; i++) {
+                var disciplina = resultados[i].nome;
+                var votos = resultados[i].votos;
+                var percentual = (votos / resultados.totalVotos) * 100;
+                listaResultados.innerHTML += "<li>" + disciplina + ": " + votos + " votos (" + percentual.toFixed(2) + "%)</li>";
+            }
+
+            resultadoParcial.style.display = "block";
+            document.getElementById("enquete").style.display = "none";
+        }
+
+        // Verificar se já houve votação ao carregar a página
+       /*  window.onload = function() {
+            var resultadoParcial = document.getElementById("resultado");
+            if (resultadoParcial.style.display === "none") {
+                atualizarResultados();
+            }
+        }; */
+    </script>
+</body>
+</html>
